@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+</head>
+
+<body class="container mt-5">
+
+<h2 class="text-center mb-4">🧑‍💼 Admin Dashboard</h2>
+
+<p>Welcome, <b>{{ current_user.name }}</b></p>
+
+<a href="/logout" class="btn btn-secondary mb-3">Logout</a>
+
+<!-- FLASH MESSAGES -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, msg in messages %}
+      <div class="alert alert-{{ category }} flash-msg">
+        {{ msg }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<!-- DASHBOARD STATS -->
+<h4>Dashboard Stats</h4>
+
+<div class="row mb-4">
+  <div class="col">Total: {{ total }}</div>
+  <div class="col text-warning">Pending: {{ pending }}</div>
+  <div class="col text-primary">In Progress: {{ progress }}</div>
+  <div class="col text-success">Resolved: {{ resolved }}</div>
+</div>
+
+<!-- FILTER + SEARCH -->
+<h4>Filter Tickets</h4>
+
+<form method="GET" class="mb-4">
+
+  Category:
+  <input type="text" name="category" value="{{ request.args.get('category','') }}">
+
+  Status:
+  <select name="status">
+    <option value="">All</option>
+    <option value="Pending" {% if request.args.get('status')=='Pending' %}selected{% endif %}>Pending</option>
+    <option value="In Progress" {% if request.args.get('status')=='In Progress' %}selected{% endif %}>In Progress</option>
+    <option value="Resolved" {% if request.args.get('status')=='Resolved' %}selected{% endif %}>Resolved</option>
+  </select>
+
+  Search:
+  <input type="text" name="search" placeholder="Search description..." value="{{ request.args.get('search','') }}">
+
+  <button class="btn btn-primary btn-sm">Filter</button>
+</form>
+
+<!-- TICKETS TABLE -->
+<h4>All Tickets</h4>
+
+<table class="table table-bordered">
+
+<tr>
+<th>ID</th>
+<th>Student</th>
+<th>Category</th>
+<th>Description</th>
+<th>Priority</th>
+<th>Status</th>
+<th>Response</th>
+<th>File</th>
+<th>Actions</th>
+</tr>
+
+{% for t in tickets %}
+<tr>
+
+<td>{{ t.id }}</td>
+
+<td>{{ t.student.name }}</td>
+
+<td>{{ t.category }}</td>
+
+<td>{{ t.description }}</td>
+
+<!-- PRIORITY -->
+<td>
+<span class="badge 
+{% if t.priority=='High' %}bg-danger
+{% elif t.priority=='Medium' %}bg-warning text-dark
+{% else %}bg-secondary{% endif %}">
+{{ t.priority }}
+</span>
+</td>
+
+<!-- STATUS -->
+<td>
+<span class="
+{% if t.status=='Pending' %}text-warning
+{% elif t.status=='In Progress' %}text-primary
+{% else %}text-success{% endif %}">
+{{ t.status }}
+</span>
+</td>
+
+<td>{{ t.admin_response or 'N/A' }}</td>
+
+<!-- FILE -->
+<td>
+{% if t.file %}
+<a href="{{ url_for('uploaded_file', filename=t.file) }}" target="_blank">View</a>
+{% else %}
+N/A
+{% endif %}
+</td>
+
+<!-- ACTIONS -->
+<td>
+
+<!-- UPDATE -->
+<form method="POST" class="mb-1">
+  <input type="hidden" name="ticket_id" value="{{ t.id }}">
+
+  <select name="status" class="form-select mb-1">
+    <option value="Pending" {% if t.status=='Pending' %}selected{% endif %}>Pending</option>
+    <option value="In Progress" {% if t.status=='In Progress' %}selected{% endif %}>In Progress</option>
+    <option value="Resolved" {% if t.status=='Resolved' %}selected{% endif %}>Resolved</option>
+  </select>
+
+  <input type="text" name="response" class="form-control mb-1" placeholder="Response">
+
+  <button class="btn btn-success btn-sm" type="submit">Update</button>
+</form>
+
+<!-- DELETE -->
+<form method="POST" action="/delete/{{ t.id }}">
+  <button class="btn btn-danger btn-sm">Delete</button>
+</form>
+
+</td>
+
+</tr>
+{% endfor %}
+
+</table>
+
+<!-- AUTO HIDE FLASH -->
+<script>
+setTimeout(() => {
+  document.querySelectorAll('.flash-msg').forEach(el => {
+    el.style.transition = "opacity 0.5s ease";
+    el.style.opacity = "0";
+    setTimeout(() => el.remove(), 500);
+  });
+}, 3000);
+</script>
+
+</body>
+</html>
