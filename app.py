@@ -53,18 +53,23 @@ def home():
 # -------- REGISTER --------
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    if request.method == 'POST':
-        user = User(
-            name=request.form['name'],
-            email=request.form['email'],
-            password=request.form['password'],
-            role=request.form['role']
-        )
-        db.session.add(user)
-        db.session.commit()
-        flash("Registered successfully!", "success")
-        return redirect(url_for('login'))
-    return render_template('register.html')
+    try:
+        if request.method == 'POST':
+            name = request.form['name']
+            email = request.form['email']
+            password = request.form['password']
+            role = request.form['role']
+
+            user = User(name=name, email=email, password=password, role=role)
+            db.session.add(user)
+            db.session.commit()
+
+            return redirect(url_for('login'))
+
+        return render_template('register.html')
+    
+    except Exception as e:
+        return f"ERROR: {str(e)}"
 
 # -------- LOGIN --------
 @app.route('/login', methods=['GET', 'POST'])
@@ -182,4 +187,7 @@ def uploaded_file(filename):
 
 
 if __name__ == "__main__":
+    with app.app_context():
+    db.create_all()
+    print("✅ Database created successfully")
     app.run(host="0.0.0.0", port=port)
