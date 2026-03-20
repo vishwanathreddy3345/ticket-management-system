@@ -3,6 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import os
 
+port = int(os.environ.get("PORT", 10000))
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret123'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
@@ -177,7 +179,7 @@ def uploaded_file(filename):
 
 # ================= RUN =================
 
-if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True)
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=port)
